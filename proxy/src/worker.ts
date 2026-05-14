@@ -1,9 +1,13 @@
 /**
  * Prompt Enhancer proxy.
  *
- * Receives { prompt: string } from the extension, calls OpenAI (or OpenRouter
- * if its key is set), returns { enhanced: string }. The provider key lives as
- * a Wrangler secret so it never reaches the client.
+ * Receives { prompt: string, style?: StyleId, customBrief?: string } from the
+ * extension, calls OpenAI (or OpenRouter if its key is set), returns
+ * { enhanced: string }. The provider key lives as a Wrangler secret so it
+ * never reaches the client.
+ *
+ * The `style` field is OPTIONAL — when omitted, defaults to `auto` (the
+ * original behavior), so older extension builds keep working unchanged.
  *
  * Rate limiting: simple in-memory per-IP sliding window (per Worker isolate).
  * Cloudflare assigns requests from the same IP to the same isolate most of
@@ -27,10 +31,11 @@ const MIN_INPUT = 3;
 const MAX_INPUT = 8000;
 const MAX_OUTPUT_TOKENS = 1024;
 const RATE_WINDOW_MS = 60 * 60 * 1000;
+const MAX_CUSTOM_BRIEF = 200;
 
-const SYSTEM_PROMPT = `You are a prompt engineering assistant. Your job is to rewrite the user's rough prompt into a clear, structured, highly effective prompt for a large language model.
+type StyleId = 'auto' | 'concise' | 'detailed' | 'code' | 'academic' | 'marketing';
 
-Rules:
+const BASE_RULES = `Rules:
 - Preserve the user's original intent exactly. Do not invent new requirements.
 - Make the goal explicit. Add a brief role or context if it improves clarity.
 - Specify the desired output format (length, structure, tone) when reasonable.
@@ -38,6 +43,48 @@ Rules:
 - Remove vagueness, filler, and ambiguity.
 - If the input is already clear, specific, and well-structured, return it nearly verbatim — do NOT rewrite for the sake of rewriting. Small polish only.
 - Output only the rewritten prompt. No preamble, no explanation, no markdown code fences.`;
+
+const STYLE_PROMPTS: Record<StyleId, string> = {
+  auto: `You are a prompt engineering assistant. Your job is to rewrite the user's rough prompt into a clear, structured, highly effective prompt for a large language model.\n\n${BASE_RULES}`,
+  concise: `You are a prompt engineering assistant. Rewrite the user's prompt to be as concise and clear as possible. Strip all filler. Target under 60 words. Keep only what is essential to convey intent.\n\n${BASE_RULES}`,
+  detailed: `You are a prompt engineering assistant. Rewrite the user's prompt with maximum structure: explicit role, audience, success criteria, desired format, and step-by-step expectations where helpful. Aim for a thorough, complete brief.\n\n${BASE_RULES}`,
+  code: `You are a prompt engineering assistant specializing in software development prompts. Rewrite the user's prompt to include: target language/runtime/framework, expected input and output, edge cases to handle, and whether examples or tests are wanted. Be precise about technical constraints.\n\n${BASE_RULES}`,
+  academic: `You are a prompt engineering assistant for academic and research work. Rewrite the user's prompt with a formal, precise tone. Define key terms, request citations or evidence where relevant, specify the discipline and expected depth.\n\n${BASE_RULES}`,
+  marketing: `You are a prompt engineering assistant for marketing and copywriting. Rewrite the user's prompt to specify: target audience, tone (e.g. playful, authoritative), call-to-action, and channel (e.g. tweet, landing page, email subject).\n\n${BASE_RULES}`,
+};
+
+const VALID_STYLES = new Set<StyleId>([
+  'auto',
+  'concise',
+  'detailed',
+  'code',
+  'academic',
+  'marketing',
+]);
+
+function isValidStyle(v: unknown): v is StyleId {
+  return typeof v === 'string' && VALID_STYLES.has(v as StyleId);
+}
+
+// Allow a short user-provided brief to nudge the style. Stays out of the
+// system prompt — appended to the user message — so it can't override
+// our instructions or escalate privileges.
+function hasControlChars(s: string): boolean {
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c < 0x20 || c === 0x7f) return true;
+  }
+  return false;
+}
+
+function sanitizeCustomBrief(v: unknown): string | null {
+  if (typeof v !== 'string') return null;
+  const trimmed = v.trim();
+  if (trimmed.length === 0) return null;
+  if (trimmed.length > MAX_CUSTOM_BRIEF) return null;
+  if (hasControlChars(trimmed)) return null;
+  return trimmed;
+}
 
 // Per-isolate sliding window. Memory resets when the isolate recycles.
 const ipBuckets = new Map<string, number[]>();
@@ -121,15 +168,29 @@ export default {
       return json({ error: 'rate_limited', message: 'Hourly limit reached.' }, 429, origin);
     }
 
-    let body: { prompt?: unknown };
+    let body: { prompt?: unknown; style?: unknown; customBrief?: unknown };
     try {
-      body = (await request.json()) as { prompt?: unknown };
+      body = (await request.json()) as typeof body;
     } catch {
       return json({ error: 'invalid_json' }, 400, origin);
     }
     const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : '';
     if (prompt.length < MIN_INPUT) return json({ error: 'too_short' }, 400, origin);
     if (prompt.length > MAX_INPUT) return json({ error: 'too_long' }, 400, origin);
+
+    // Style is optional; missing means 'auto'. Invalid means 400 (don't fail open).
+    let style: StyleId = 'auto';
+    if (body.style !== undefined) {
+      if (!isValidStyle(body.style)) {
+        return json({ error: 'invalid_style' }, 400, origin);
+      }
+      style = body.style;
+    }
+    const systemPrompt = STYLE_PROMPTS[style];
+
+    // Optional custom brief — strict sanitization, appended to user message.
+    const customBrief = sanitizeCustomBrief(body.customBrief);
+    const userMessage = customBrief ? `${prompt}\n\n(Style note: ${customBrief})` : prompt;
 
     const useOpenRouter = !!env.OPENROUTER_API_KEY;
     const apiKey = env.OPENROUTER_API_KEY ?? env.OPENAI_API_KEY;
@@ -159,8 +220,8 @@ export default {
           temperature: 0.4,
           max_tokens: MAX_OUTPUT_TOKENS,
           messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
-            { role: 'user', content: prompt },
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage },
           ],
         }),
       });
@@ -171,12 +232,14 @@ export default {
     if (upstream.status === 401) return json({ error: 'upstream_unauthorized' }, 502, origin);
     if (upstream.status === 429) return json({ error: 'upstream_rate_limited' }, 429, origin);
     if (upstream.status >= 500) return json({ error: 'upstream_server' }, 502, origin);
-    if (!upstream.ok) return json({ error: 'upstream_unexpected', status: upstream.status }, 502, origin);
+    if (!upstream.ok) {
+      return json({ error: 'upstream_unexpected', status: upstream.status }, 502, origin);
+    }
 
     const data = (await upstream.json()) as ChatResponse;
     const enhanced = data.choices?.[0]?.message?.content?.trim();
     if (!enhanced) return json({ error: 'empty_response' }, 502, origin);
 
-    return json({ enhanced, remaining: rate.remaining }, 200, origin);
+    return json({ enhanced, remaining: rate.remaining, style }, 200, origin);
   },
 };
