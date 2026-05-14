@@ -1,0 +1,15 @@
+name = "prompt-enhancer-proxy"
+main = "src/worker.ts"
+compatibility_date = "2024-09-01"
+
+# Set with: wrangler secret put OPENAI_API_KEY   (or OPENROUTER_API_KEY)
+# Never commit the key. Use one OR the other; OPENROUTER takes precedence if both are set.
+
+[vars]
+# Comma-separated list of allowed extension IDs. Leave empty to allow any.
+# Once you publish to the Chrome Web Store, paste the published ID here.
+ALLOWED_EXTENSION_IDS = ""
+
+# Hard ceiling per IP per hour. Defence in depth on top of the extension's
+# own 20/hr counter. Bump if you have real users.
+RATE_LIMIT_PER_HOUR = "30"

@@ -1,0 +1,18 @@
+{
+  "name": "prompt-enhancer-proxy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Worker that proxies the Prompt Enhancer extension to OpenAI / OpenRouter, keeping the API key off the client.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "secret:openai": "wrangler secret put OPENAI_API_KEY",
+    "secret:openrouter": "wrangler secret put OPENROUTER_API_KEY"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240821.1",
+    "typescript": "^5.5.4",
+    "wrangler": "^3.72.0"
+  }
+}

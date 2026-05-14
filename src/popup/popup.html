@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Prompt Enhancer</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body class="pe-popup">
+    <header class="pe-popup__header">
+      <h1 class="pe-popup__title">Prompt Enhancer</h1>
+      <p class="pe-popup__subtitle">Rewrite rough prompts into structured ones.</p>
+    </header>
+
+    <section class="pe-popup__section">
+      <h2 class="pe-popup__h2">Usage</h2>
+      <div class="pe-popup__usage">
+        <span id="usage-text" class="pe-popup__usage-text">0 / 20</span>
+        <div class="pe-popup__bar"><div id="usage-bar" class="pe-popup__bar-fill"></div></div>
+        <span id="usage-reset" class="pe-popup__reset-text"></span>
+      </div>
+      <button id="reset-usage" class="pe-popup__btn pe-popup__btn--ghost" type="button">Reset Counter</button>
+    </section>
+
+    <section class="pe-popup__section">
+      <h2 class="pe-popup__h2">How to use</h2>
+      <ol class="pe-popup__steps">
+        <li>Open ChatGPT, Claude, or Gemini.</li>
+        <li>Type a rough prompt in the chat box.</li>
+        <li>Click the ✨ Enhance button next to the composer.</li>
+      </ol>
+    </section>
+
+    <footer class="pe-popup__footer">
+      <span>No API key needed — calls are routed through a secure proxy.</span>
+    </footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

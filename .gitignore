@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.log
+*.zip
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Cloudflare Worker local state
+proxy/.wrangler/
+proxy/.dev.vars
+
+# Local Claude Code / agent scaffolding — kept on disk, never published
+.claude/
+.agent/
+.skills/
+CLAUDE.md
+
+# Personal drafts (LinkedIn posts, notes, etc.)
+linkdin.md
+linkedin.md
+*.draft.md
+notes/
