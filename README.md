@@ -4,9 +4,9 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Manifest V3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 
-> Tired of typing **"blog post about cats"** and getting generic AI output? Click ✨ and your draft becomes a structured prompt — role, audience, format, tone — before it reaches ChatGPT, Claude, or Gemini.
+> Tired of typing **"blog post about cats"** and getting generic AI output? Click ✨ and your draft becomes a structured prompt role, audience, format, tone  before it reaches ChatGPT, Claude, or Gemini.
 
-Prompt Enhancer is a Manifest V3 Chrome extension that injects a small Enhance button next to the chat composer on **ChatGPT**, **Claude**, and **Gemini**. Click it, get a rewritten prompt, paste it back. Users never need to bring their own API key — calls are routed through a Cloudflare Worker proxy you control.
+Prompt Enhancer is a Manifest V3 Chrome extension that injects a small Enhance button next to the chat composer on **ChatGPT**, **Claude**, and **Gemini**. Click it, get a rewritten prompt, paste it back. Users never need to bring their own API key calls are routed through a Cloudflare Worker proxy you control.
 
 ---
 
@@ -20,7 +20,7 @@ The full flow — type a rough prompt, click ✨, get back a structured one:
 
 ![Result inserted back into the composer](./docs/screenshots/enhance-result.png)
 
-> _The current icons (`public/icons/*.png`) are placeholder solid-indigo squares. Replace before publishing to the Chrome Web Store._
+> 
 
 ---
 
@@ -90,7 +90,7 @@ npm install
 PROXY_URL='https://your-worker-subdomain.workers.dev/enhance' npm run build:prod
 ```
 
-If you forget to set `PROXY_URL`, the build still succeeds but defaults to a placeholder, and the extension will fail at runtime with a network error. This is deliberate — a "loud failure" so you can't accidentally publish a build pointing nowhere.
+If you forget to set `PROXY_URL`, the build still succeeds but defaults to a placeholder, and the extension will fail at runtime with a network error. This is deliberate a "loud failure" so you can't accidentally publish a build pointing nowhere.
 
 Output lands in `dist/`.
 
