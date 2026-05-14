@@ -1,6 +1,6 @@
 # Prompt Enhancer
 
-[![CI](https://github.com/YOUR-USERNAME/prompt-enhancer/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR-USERNAME/prompt-enhancer/actions/workflows/ci.yml)
+[![CI](https://github.com/amanisok/Prompt_Enhancer/actions/workflows/ci.yml/badge.svg)](https://github.com/amanisok/Prompt_Enhancer/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Manifest V3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4.svg)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 

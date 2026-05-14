@@ -46,13 +46,3 @@ export function validateLength(input: string): ValidationResult {
   return { ok: true, value: trimmed };
 }
 
-/**
- * Validate an OpenAI API key format. Accepts sk-... and sk-proj-... shapes.
- */
-export function validateApiKey(key: string): ValidationResult {
-  const trimmed = key.trim();
-  if (!/^sk-[A-Za-z0-9_\-]{20,}$/.test(trimmed)) {
-    return { ok: false, reason: 'Invalid API key format. Expected sk-...' };
-  }
-  return { ok: true, value: trimmed };
-}

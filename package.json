@@ -7,7 +7,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR-USERNAME/prompt-enhancer.git"
+    "url": "https://github.com/amanisok/Prompt_Enhancer.git"
   },
   "scripts": {
     "clean": "rm -rf dist",
