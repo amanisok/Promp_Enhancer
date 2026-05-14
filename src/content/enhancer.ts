@@ -3,8 +3,13 @@
  * upstream API key. The extension itself never sees the key.
  */
 
-import { LIMITS, MESSAGES, PROXY_URL } from '../utils/constants';
+import { LIMITS, MESSAGES, PROXY_URL, StyleId } from '../utils/constants';
 import { validateLength } from '../utils/sanitize';
+
+export interface EnhanceOptions {
+  style: StyleId;
+  customBrief?: string;
+}
 
 export type EnhancerErrorCode =
   | 'INVALID_INPUT'
@@ -50,16 +55,22 @@ async function recordUsage(): Promise<void> {
   await chrome.runtime.sendMessage({ type: MESSAGES.INCREMENT_USAGE });
 }
 
-async function callProxy(userPrompt: string): Promise<string> {
+async function callProxy(userPrompt: string, opts: EnhanceOptions): Promise<string> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), LIMITS.REQUEST_TIMEOUT_MS);
+
+  const requestBody: Record<string, unknown> = {
+    prompt: userPrompt,
+    style: opts.style,
+  };
+  if (opts.customBrief) requestBody.customBrief = opts.customBrief;
 
   let response: Response;
   try {
     response = await fetch(PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: userPrompt }),
+      body: JSON.stringify(requestBody),
       signal: controller.signal,
     });
   } catch (err) {
@@ -108,7 +119,7 @@ function isRetryable(err: unknown): boolean {
  * Enhance a rough prompt into a structured, effective prompt.
  * Throws EnhancerError on any failure.
  */
-export async function enhancePrompt(raw: string): Promise<string> {
+export async function enhancePrompt(raw: string, opts: EnhanceOptions): Promise<string> {
   const v = validateLength(raw);
   if (!v.ok || !v.value) {
     throw new EnhancerError('INVALID_INPUT', v.reason ?? 'Invalid input.');
@@ -119,7 +130,7 @@ export async function enhancePrompt(raw: string): Promise<string> {
   let lastError: unknown;
   for (let attempt = 0; attempt < LIMITS.RETRY_MAX_ATTEMPTS; attempt++) {
     try {
-      const result = await callProxy(v.value);
+      const result = await callProxy(v.value, opts);
       await recordUsage();
       return result;
     } catch (err) {

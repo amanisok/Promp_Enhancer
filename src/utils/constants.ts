@@ -27,7 +27,34 @@ export const LIMITS = {
 
 export const STORAGE_KEYS = {
   USAGE_TIMESTAMPS: 'pe_usage_ts',
+  LAST_STYLE: 'pe_last_style',
 } as const;
+
+export type StyleId = 'auto' | 'concise' | 'detailed' | 'code' | 'academic' | 'marketing';
+
+export const DEFAULT_STYLE: StyleId = 'auto';
+
+export const STYLE_LABELS: Record<StyleId, { label: string; hint: string }> = {
+  auto: { label: 'Auto', hint: 'Smart default — structured rewrite' },
+  concise: { label: 'Concise', hint: 'Strip filler — under 60 words' },
+  detailed: { label: 'Detailed', hint: 'Full brief: role, audience, format' },
+  code: { label: 'Code-focused', hint: 'Language, inputs, edge cases' },
+  academic: { label: 'Academic', hint: 'Formal tone, citations, precision' },
+  marketing: { label: 'Marketing', hint: 'Audience, tone, call-to-action' },
+};
+
+export const STYLE_ORDER: StyleId[] = [
+  'auto',
+  'concise',
+  'detailed',
+  'code',
+  'academic',
+  'marketing',
+];
+
+export function isStyleId(v: unknown): v is StyleId {
+  return typeof v === 'string' && v in STYLE_LABELS;
+}
 
 export const MESSAGES = {
   CHECK_RATE_LIMIT: 'checkRateLimit',
