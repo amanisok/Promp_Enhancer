@@ -54,9 +54,10 @@ async function getUsageStats(): Promise<UsageStatsResponse> {
   const ts = pruneExpired(await getTimestamps(), now);
   const used = ts.length;
   const oldest = ts[0] ?? now;
-  const resetMs = used >= LIMITS.RATE_LIMIT_PER_HOUR
-    ? Math.max(0, oldest + LIMITS.RATE_LIMIT_WINDOW_MS - now)
-    : 0;
+  const resetMs =
+    used >= LIMITS.RATE_LIMIT_PER_HOUR
+      ? Math.max(0, oldest + LIMITS.RATE_LIMIT_WINDOW_MS - now)
+      : 0;
   return {
     used,
     limit: LIMITS.RATE_LIMIT_PER_HOUR,
@@ -85,6 +86,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         return { error: 'unknown_message' };
     }
   };
-  handle().then(sendResponse).catch((err) => sendResponse({ error: String(err) }));
+  handle()
+    .then(sendResponse)
+    .catch((err) => sendResponse({ error: String(err) }));
   return true;
 });

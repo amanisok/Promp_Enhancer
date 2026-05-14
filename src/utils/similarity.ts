@@ -42,7 +42,6 @@ export function analyzeChange(original: string, enhanced: string): ChangeAnalysi
   const lenB = enhanced.length || 1;
   const lengthRatio = Math.min(lenA, lenB) / Math.max(lenA, lenB);
 
-  const level: ChangeLevel =
-    jaccard >= 0.85 && lengthRatio >= 0.85 ? 'minimal' : 'substantial';
+  const level: ChangeLevel = jaccard >= 0.85 && lengthRatio >= 0.85 ? 'minimal' : 'substantial';
   return { level, jaccard, lengthRatio };
 }

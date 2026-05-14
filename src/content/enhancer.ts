@@ -79,10 +79,7 @@ async function callProxy(userPrompt: string): Promise<string> {
   }
 
   if (response.status === 429) {
-    throw new EnhancerError(
-      'RATE_LIMITED',
-      data.message ?? 'Service is busy. Try again shortly.'
-    );
+    throw new EnhancerError('RATE_LIMITED', data.message ?? 'Service is busy. Try again shortly.');
   }
   if (response.status === 500 && data.error === 'server_misconfigured') {
     throw new EnhancerError(

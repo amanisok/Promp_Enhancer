@@ -27,6 +27,12 @@ jobs:
       - name: Lint
         run: npm run lint --if-present
 
+      - name: Format check
+        run: npm run format:check --if-present
+
+      - name: Test
+        run: npm test --if-present
+
       - name: Build (production)
         env:
           PROXY_URL: https://ci-placeholder.workers.dev/enhance

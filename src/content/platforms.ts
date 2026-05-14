@@ -89,10 +89,7 @@ export function readContent(el: HTMLElement, type: ContentType): string {
  */
 export function writeContent(el: HTMLElement, type: ContentType, text: string): void {
   if (type === 'value' && el instanceof HTMLTextAreaElement) {
-    const setter = Object.getOwnPropertyDescriptor(
-      HTMLTextAreaElement.prototype,
-      'value'
-    )?.set;
+    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
     setter?.call(el, text);
   } else {
     el.focus();

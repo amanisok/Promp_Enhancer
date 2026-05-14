@@ -79,11 +79,7 @@ function getFocusable(root: HTMLElement): HTMLElement[] {
 /**
  * Render the modal. Returns a close function the caller can also invoke.
  */
-export function showModal(
-  original: string,
-  enhanced: string,
-  cb: ModalCallbacks
-): () => void {
+export function showModal(original: string, enhanced: string, cb: ModalCallbacks): () => void {
   const host = document.createElement('div');
   host.className = PE_CLASS.ROOT;
   host.innerHTML = TEMPLATE;
@@ -104,8 +100,7 @@ export function showModal(
   if (banner) {
     const change = analyzeChange(original, enhanced);
     if (change.level === 'identical') {
-      banner.textContent =
-        'Your prompt is already well-written — no changes were needed.';
+      banner.textContent = 'Your prompt is already well-written — no changes were needed.';
       banner.dataset.peLevel = 'info';
       banner.hidden = false;
     } else if (change.level === 'minimal') {

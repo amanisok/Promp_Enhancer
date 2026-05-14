@@ -49,7 +49,10 @@
   border-radius: 999px;
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
   cursor: pointer;
-  transition: transform var(--pe-transition), box-shadow var(--pe-transition), opacity var(--pe-transition);
+  transition:
+    transform var(--pe-transition),
+    box-shadow var(--pe-transition),
+    opacity var(--pe-transition);
 }
 .pe-enhance-btn:hover {
   transform: translateY(-1px);
@@ -73,7 +76,9 @@
   animation: pe-spin 0.8s linear infinite;
 }
 @keyframes pe-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Modal */
@@ -132,10 +137,18 @@
   justify-content: center;
   border-radius: 6px;
   color: var(--pe-muted);
-  transition: background var(--pe-transition), color var(--pe-transition);
+  transition:
+    background var(--pe-transition),
+    color var(--pe-transition);
 }
-.pe-icon-btn svg { width: 16px; height: 16px; }
-.pe-icon-btn:hover { background: var(--pe-surface-2); color: var(--pe-text); }
+.pe-icon-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.pe-icon-btn:hover {
+  background: var(--pe-surface-2);
+  color: var(--pe-text);
+}
 .pe-modal-body {
   padding: 16px 20px;
   display: flex;
@@ -192,7 +205,7 @@
   gap: 8px;
   padding: 14px 20px;
   border-top: 1px solid var(--pe-border);
-  background: rgba(0,0,0,0.15);
+  background: rgba(0, 0, 0, 0.15);
 }
 .pe-btn {
   all: unset;
@@ -201,21 +214,31 @@
   font-weight: 600;
   padding: 8px 14px;
   border-radius: var(--pe-radius-sm);
-  transition: background var(--pe-transition), color var(--pe-transition), opacity var(--pe-transition);
+  transition:
+    background var(--pe-transition),
+    color var(--pe-transition),
+    opacity var(--pe-transition);
 }
 .pe-btn--primary {
   background: var(--pe-accent);
   color: #fff;
 }
-.pe-btn--primary:hover { background: var(--pe-accent-hover); }
+.pe-btn--primary:hover {
+  background: var(--pe-accent-hover);
+}
 .pe-btn--ghost {
   background: transparent;
   color: var(--pe-muted);
   border: 1px solid var(--pe-border);
 }
-.pe-btn--ghost:hover { color: var(--pe-text); background: var(--pe-surface-2); }
+.pe-btn--ghost:hover {
+  color: var(--pe-text);
+  background: var(--pe-surface-2);
+}
 
-.pe-btn-label { font-family: inherit; }
+.pe-btn-label {
+  font-family: inherit;
+}
 
 /* Toast */
 .pe-toast-root {
@@ -234,7 +257,9 @@
   box-shadow: var(--pe-shadow);
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity var(--pe-transition), transform var(--pe-transition);
+  transition:
+    opacity var(--pe-transition),
+    transform var(--pe-transition);
   max-width: 320px;
 }
 .pe-toast--open {

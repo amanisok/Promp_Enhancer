@@ -147,10 +147,7 @@ function watchUrlChanges(cfg: PlatformConfig): void {
   // SPA frameworks call pushState / replaceState directly — patch them to emit an event.
   const origPush = history.pushState;
   const origReplace = history.replaceState;
-  history.pushState = function (
-    this: History,
-    ...args: Parameters<History['pushState']>
-  ): void {
+  history.pushState = function (this: History, ...args: Parameters<History['pushState']>): void {
     origPush.apply(this, args);
     window.dispatchEvent(new Event('pe:locationchange'));
   };

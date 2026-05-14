@@ -9,7 +9,10 @@ import { LIMITS } from './constants';
  * HTML entities safely without ever inserting markup into the live DOM.
  */
 export function stripHtml(input: string): string {
-  return input.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  return input
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /**
@@ -45,4 +48,3 @@ export function validateLength(input: string): ValidationResult {
   }
   return { ok: true, value: trimmed };
 }
-
