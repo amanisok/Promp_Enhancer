@@ -36,13 +36,15 @@ const MAX_CUSTOM_BRIEF = 200;
 type StyleId = 'auto' | 'concise' | 'detailed' | 'code' | 'academic' | 'marketing';
 
 const BASE_RULES = `Rules:
+- You are REFINING the user's prompt, NOT answering their question.
+- The output must be a prompt the user can paste into an AI, not the answer itself.
 - Preserve the user's original intent exactly. Do not invent new requirements.
 - Make the goal explicit. Add a brief role or context if it improves clarity.
 - Specify the desired output format (length, structure, tone) when reasonable.
 - Break complex requests into numbered steps or bullet points.
 - Remove vagueness, filler, and ambiguity.
 - If the input is already clear, specific, and well-structured, return it nearly verbatim — do NOT rewrite for the sake of rewriting. Small polish only.
-- Output only the rewritten prompt. No preamble, no explanation, no markdown code fences.`;
+- Output ONLY the rewritten prompt text. No preamble, no "Here's your enhanced prompt:", no markdown code fences.`;
 
 const STYLE_PROMPTS: Record<StyleId, string> = {
   auto: `You are a prompt engineering assistant. Your job is to rewrite the user's rough prompt into a clear, structured, highly effective prompt for a large language model.\n\n${BASE_RULES}`,
