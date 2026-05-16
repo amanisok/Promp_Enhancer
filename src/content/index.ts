@@ -14,7 +14,10 @@ import {
 } from './platforms';
 import { createEnhanceButton, EnhanceButton } from './ui/button';
 import { showModal } from './ui/modal';
+import { showStyleMenu } from './ui/style-menu';
 import { validateLength } from '../utils/sanitize';
+import { DEFAULT_STYLE, STORAGE_KEYS, StyleId, isStyleId } from '../utils/constants';
+import { storageGet, storageSet } from '../utils/storage';
 
 const DEBOUNCE_MS = 500;
 const BUTTON_MARKER = 'data-pe-injected';
@@ -27,6 +30,32 @@ let started = false;
 let lastUrl = location.href;
 let urlCleanup: (() => void) | null = null;
 let inFlight = false;
+let cachedStyle: StyleId | null = null;
+
+async function loadCachedStyle(): Promise<void> {
+  const saved = await storageGet<string>(STORAGE_KEYS.LAST_STYLE);
+  cachedStyle = isStyleId(saved) ? saved : null;
+}
+
+async function persistStyle(style: StyleId): Promise<void> {
+  cachedStyle = style;
+  try {
+    await storageSet(STORAGE_KEYS.LAST_STYLE, style);
+  } catch {
+    /* non-fatal */
+  }
+}
+
+function pickStyle(anchor: HTMLElement): Promise<StyleId | null> {
+  return new Promise((resolve) => {
+    showStyleMenu({
+      anchor,
+      current: cachedStyle ?? DEFAULT_STYLE,
+      onPick: (s) => resolve(s),
+      onDismiss: () => resolve(null),
+    });
+  });
+}
 
 function notify(message: string): void {
   const host = document.createElement('div');
@@ -79,30 +108,58 @@ async function handleEnhance(cfg: PlatformConfig): Promise<void> {
     notify(`Long prompt (${v.value.length} chars) — enhancement may take longer.`);
   }
 
+  // First enhance after install: show the style picker. Otherwise use the
+  // remembered last choice. "Try another style" inside the modal always shows
+  // the picker again.
+  let style: StyleId;
+  if (cachedStyle === null) {
+    const picked = await pickStyle(buttonSnapshot.element);
+    if (!picked) return; // user dismissed
+    style = picked;
+  } else {
+    style = cachedStyle;
+  }
+
   inFlight = true;
   buttonSnapshot.setState('loading');
   try {
-    const enhanced = await enhancePrompt(v.value);
+    const enhanced = await enhancePrompt(v.value, { style });
+    await persistStyle(style);
     buttonSnapshot.setState('idle');
-    showModal(v.value, enhanced, {
-      onUse: (text) => {
-        // Prefer the live target if it's still connected; fall back to snapshot.
-        const writeTarget =
-          currentTarget && currentTarget.isConnected
-            ? currentTarget
-            : targetSnapshot.isConnected
-              ? targetSnapshot
-              : null;
-        if (writeTarget) writeContent(writeTarget, cfg.contentType, text);
+    inFlight = false; // allow regenerate / change-style calls while modal is open
+
+    showModal({
+      original: v.value,
+      enhanced,
+      style,
+      callbacks: {
+        onUse: (text) => {
+          const writeTarget =
+            currentTarget && currentTarget.isConnected
+              ? currentTarget
+              : targetSnapshot.isConnected
+                ? targetSnapshot
+                : null;
+          if (writeTarget) writeContent(writeTarget, cfg.contentType, text);
+        },
+        onRegenerate: async () => {
+          const result = await enhancePrompt(v.value!, { style });
+          await persistStyle(style);
+          return result;
+        },
+        onChangeStyle: async (newStyle) => {
+          const result = await enhancePrompt(v.value!, { style: newStyle });
+          await persistStyle(newStyle);
+          return result;
+        },
       },
     });
   } catch (err) {
     buttonSnapshot.setState('idle');
+    inFlight = false;
     const msg =
       err instanceof EnhancerError ? err.message : 'Something went wrong. Please try again.';
     notify(msg);
-  } finally {
-    inFlight = false;
   }
 }
 
@@ -177,6 +234,9 @@ function start(): void {
   const cfg = getPlatformConfig();
   if (!cfg) return;
   started = true;
+
+  // Fire and forget — the picker handles the case where it isn't loaded yet.
+  void loadCachedStyle();
 
   tryInject(cfg);
 
